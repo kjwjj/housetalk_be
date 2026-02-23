@@ -35,7 +35,7 @@ public static BoardResponseDTO fromEntity(Board board) {
 
     if (board.getUser() != null) {
         authorId = board.getUser().getId();
-        author = board.getUser().getEmail();
+        author = board.getUser().getName();
     }
 
     return BoardResponseDTO.builder()

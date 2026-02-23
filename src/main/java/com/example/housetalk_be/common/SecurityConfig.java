@@ -112,11 +112,13 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/news",
                                 "/images/**"
+                                ,"/api/houses/**", // 수정해볼것
+                                "/api/boards/**" // 이것도
                         ).permitAll()
                         // GET 매물은 누구나 조회 가능
                         .requestMatchers(HttpMethod.GET, "/api/houses/**","/api/boards/**").permitAll()
                         // POST/PUT/DELETE는 로그인 필요
-                        .requestMatchers("/api/houses/**","/api/boards/**", "/api/boards/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/houses/**","/api/boards/**", "/api/boards/my").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,6 +1,7 @@
 package com.example.housetalk_be.user.service;
 
 import com.example.housetalk_be.auth.service.EmailAuthService;
+import com.example.housetalk_be.user.domain.Role;
 import com.example.housetalk_be.user.domain.User;
 import com.example.housetalk_be.user.dto.SignUpRequest;
 import com.example.housetalk_be.user.repository.UserRepository;
@@ -8,6 +9,7 @@ import com.example.housetalk_be.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
@@ -42,6 +44,7 @@ public class UserService {
                 .birth(request.getBirth())
                 .gender(request.getGender())
                 .phone(request.getPhone())
+                .role(Role.ROLE_USER) // ✅ 여기서 기본값 지정 집에서 확인해 볼것
                 .build();
 
         userRepository.save(user);
@@ -99,7 +102,7 @@ public class UserService {
     }
 
     // 비밀번호 변경
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void changePassword(String email,
                                String currentPassword,
                                String newPassword,
@@ -118,5 +121,10 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        userRepository.flush();
+
+        // 디버깅용
+//        System.out.println("DB 저장 비밀번호: " + user.getPassword());
+//        System.out.println("matches 새비밀번호: " + passwordEncoder.matches(newPassword, user.getPassword()));
     }
 }

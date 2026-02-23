@@ -183,26 +183,53 @@ public class UserController {
         return ResponseEntity.ok("회원 탈퇴 완료");
     }
 
-    // -------------------
+//    // -------------------
+//    // 비밀번호 변경
+//    // -------------------
+//    @PutMapping("/change-password")
+//    public ResponseEntity<Map<String, String>> changePassword(
+//            @RequestHeader("Authorization") String authHeader,
+//            @Valid @RequestBody PasswordChangeRequest request) {
+//
+//        String token = authHeader.substring(7);
+//        String email = jwtUtil.getEmailFromToken(token);
+//
+//        userService.changePassword(
+//                email,
+//                request.getCurrentPassword(),
+//                request.getNewPassword(),
+//                request.getConfirmPassword()
+//        );
+//
+//        Map<String, String> result = new HashMap<>();
+//        result.put("message", "비밀번호 변경 완료");
+//        return ResponseEntity.ok(result);
+//    }
+// -------------------
+// 비밀번호 변경
+// -------------------
+@PutMapping("/change-password")
+public ResponseEntity<Map<String, String>> changePassword(
+        @RequestHeader("Authorization") String authHeader,
+        @Valid @RequestBody PasswordChangeRequest request) {
+
+    String token = authHeader.substring(7);
+    String email = jwtUtil.getEmailFromToken(token);
+
     // 비밀번호 변경
-    // -------------------
-    @PutMapping("/change-password")
-    public ResponseEntity<Map<String, String>> changePassword(
-            @RequestHeader("Authorization") String authHeader,
-            @Valid @RequestBody PasswordChangeRequest request) {
+    userService.changePassword(
+            email,
+            request.getCurrentPassword(),
+            request.getNewPassword(),
+            request.getConfirmPassword()
+    );
 
-        String token = authHeader.substring(7);
-        String email = jwtUtil.getEmailFromToken(token);
+    // 🔑 변경 후 새 JWT 발급
+    String newToken = jwtUtil.generateToken(email);
 
-        userService.changePassword(
-                email,
-                request.getCurrentPassword(),
-                request.getNewPassword(),
-                request.getConfirmPassword()
-        );
-
-        Map<String, String> result = new HashMap<>();
-        result.put("message", "비밀번호 변경 완료");
-        return ResponseEntity.ok(result);
-    }
+    Map<String, String> result = new HashMap<>();
+    result.put("message", "비밀번호 변경 완료");
+    result.put("token", newToken); // 새 토큰 반환
+    return ResponseEntity.ok(result);
+}
 }

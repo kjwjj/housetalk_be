@@ -16,7 +16,12 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.core.Authentication;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor
@@ -61,16 +66,29 @@ public class BoardController {
     }
 
     // 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
-        String username = authentication.getName();
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
-        boardService.delete(id, username, role);
-        return ResponseEntity.ok().build();
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<?> delete(
+//            @PathVariable Long id,
+//            Authentication authentication
+//    ) {
+//        String username = authentication.getName();
+//        String role = authentication.getAuthorities().iterator().next().getAuthority();
+////        boardService.delete(id, username, role);
+//        boardService.delete(id);
+//        return ResponseEntity.ok().build();
+//    }
+@DeleteMapping("/{id}")
+public ResponseEntity<String> delete(
+        @PathVariable Long id,
+        @RequestBody Map<String, Object> requestBody
+) {
+    Long userId = Long.valueOf(requestBody.get("userId").toString());
+    boolean isAdmin = (Boolean) requestBody.get("isAdmin");
+
+    boardService.delete(id, userId, isAdmin);
+
+    return ResponseEntity.ok("삭제 완료");
+}
 
     // 🔹 내 게시글만 조회
     @GetMapping("/my")

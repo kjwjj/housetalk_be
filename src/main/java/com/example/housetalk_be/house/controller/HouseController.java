@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.housetalk_be.user.domain.Role;
 
 import java.io.File;
 import java.io.IOException;
@@ -94,6 +95,22 @@ public class HouseController {
         return ResponseEntity.ok(HouseResponseDto.from(updated));
     }
 
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteHouse(
+//            @PathVariable Long id,
+//            @AuthenticationPrincipal UserDetails principal
+//    ) {
+//        House house = houseService.findById(id)
+//                .orElseThrow(() -> new RuntimeException("매물이 존재하지 않습니다."));
+//
+//        if (!house.getUser().getEmail().equals(principal.getUsername())) {
+//            return ResponseEntity.status(403).build();
+//        }
+//
+//        houseService.delete(house);
+//        return ResponseEntity.noContent().build();
+//    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHouse(
             @PathVariable Long id,
@@ -102,7 +119,14 @@ public class HouseController {
         House house = houseService.findById(id)
                 .orElseThrow(() -> new RuntimeException("매물이 존재하지 않습니다."));
 
-        if (!house.getUser().getEmail().equals(principal.getUsername())) {
+        User loginUser = userDetailsService.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("로그인 사용자 없음"));
+
+        // User가 null일 수도 있음 → null 체크 추가
+        boolean isOwner = house.getUser() != null && house.getUser().getEmail().equals(principal.getUsername());
+        boolean isAdmin = loginUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isOwner && !isAdmin) {
             return ResponseEntity.status(403).build();
         }
 

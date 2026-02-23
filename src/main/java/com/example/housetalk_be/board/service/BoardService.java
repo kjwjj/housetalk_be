@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,15 +93,31 @@ public class BoardService {
     // =========================
     // 삭제
     // =========================
+//    @Transactional
+//    public void delete(Long id) {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        String email = auth.getName();
+//        boolean isAdmin = auth.getAuthorities().stream()
+//                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+//
+//        Board board = boardRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+//
+//        boolean isAuthor = board.getUser().getEmail().equals(email);
+//
+//        if (!(isAuthor || isAdmin)) {
+//            throw new IllegalArgumentException("삭제 권한 없음");
+//        }
+//
+//        boardRepository.delete(board);
+//    }
     @Transactional
-    public void delete(Long id, String email, String role) {
-
+    public void delete(Long id, Long userId, boolean isAdmin) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
 
-        boolean isAuthor = board.getUser().getEmail().equals(email);
-        boolean isAdmin = "ROLE_ADMIN".equals(role);  // 🔥 null 안전
-
+//        boolean isAuthor = board.getUser().getId().equals(userId); // ⚡ userId 비교
+        boolean isAuthor = board.getUser() != null && board.getUser().getId().equals(userId);
         if (!(isAuthor || isAdmin)) {
             throw new IllegalArgumentException("삭제 권한 없음");
         }

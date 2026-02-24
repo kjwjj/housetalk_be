@@ -26,6 +26,11 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final UserService userService;
 
+    // 🔹 게시글 수 조회
+    public long getBoardCount() {
+        return boardRepository.count();
+    }
+
     // =========================
     // 게시글 등록
     // =========================
@@ -90,27 +95,6 @@ public class BoardService {
         board.update(dto.getTitle(), dto.getContent());
     }
 
-    // =========================
-    // 삭제
-    // =========================
-//    @Transactional
-//    public void delete(Long id) {
-//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//        String email = auth.getName();
-//        boolean isAdmin = auth.getAuthorities().stream()
-//                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-//
-//        Board board = boardRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
-//
-//        boolean isAuthor = board.getUser().getEmail().equals(email);
-//
-//        if (!(isAuthor || isAdmin)) {
-//            throw new IllegalArgumentException("삭제 권한 없음");
-//        }
-//
-//        boardRepository.delete(board);
-//    }
     @Transactional
     public void delete(Long id, Long userId, boolean isAdmin) {
         Board board = boardRepository.findById(id)

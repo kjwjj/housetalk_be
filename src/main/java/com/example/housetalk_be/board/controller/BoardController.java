@@ -29,6 +29,13 @@ public class BoardController {
 
     private final BoardService boardService;
 
+    // 🔹 전체 게시글 수
+    @GetMapping("/count")
+    public ResponseEntity<Long> getBoardCount() {
+        long count = boardService.getBoardCount();
+        return ResponseEntity.ok(count);
+    }
+
     // 등록
     @PostMapping
     public ResponseEntity<Long> create(
@@ -65,30 +72,18 @@ public class BoardController {
         return ResponseEntity.ok().build();
     }
 
-    // 삭제
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<?> delete(
-//            @PathVariable Long id,
-//            Authentication authentication
-//    ) {
-//        String username = authentication.getName();
-//        String role = authentication.getAuthorities().iterator().next().getAuthority();
-////        boardService.delete(id, username, role);
-//        boardService.delete(id);
-//        return ResponseEntity.ok().build();
-//    }
-@DeleteMapping("/{id}")
-public ResponseEntity<String> delete(
-        @PathVariable Long id,
-        @RequestBody Map<String, Object> requestBody
-) {
-    Long userId = Long.valueOf(requestBody.get("userId").toString());
-    boolean isAdmin = (Boolean) requestBody.get("isAdmin");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> requestBody
+    ) {
+        Long userId = Long.valueOf(requestBody.get("userId").toString());
+        boolean isAdmin = (Boolean) requestBody.get("isAdmin");
 
-    boardService.delete(id, userId, isAdmin);
+        boardService.delete(id, userId, isAdmin);
 
-    return ResponseEntity.ok("삭제 완료");
-}
+        return ResponseEntity.ok("삭제 완료");
+    }
 
     // 🔹 내 게시글만 조회
     @GetMapping("/my")

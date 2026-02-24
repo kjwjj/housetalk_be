@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Map;
 
 import java.util.UUID;
@@ -126,5 +128,28 @@ public class UserService {
         // 디버깅용
 //        System.out.println("DB 저장 비밀번호: " + user.getPassword());
 //        System.out.println("matches 새비밀번호: " + passwordEncoder.matches(newPassword, user.getPassword()));
+    }
+    // 총 회원 수 조회
+    public Long getTotalUsers() {
+        return userRepository.count(); // JpaRepository가 제공하는 count() 사용
+    }
+
+    // 모든 회원 조회
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // 관리자가 유저 삭제
+    @Transactional
+    public void deleteUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if(user.getRole() == Role.ROLE_ADMIN) {
+            throw new IllegalArgumentException("관리자는 삭제할 수 없습니다.");
+        }
+
+        userRepository.delete(user);
     }
 }

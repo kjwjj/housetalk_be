@@ -142,4 +142,11 @@ public class HouseController {
                 .toList();
         return ResponseEntity.ok(dtos);
     }
+
+    // 총 매물수 조회
+    @GetMapping("/count")
+    public ResponseEntity<Long> getHouseCount() {
+        long count = houseService.countHouses();
+        return ResponseEntity.ok(count);
+    }
 }

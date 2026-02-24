@@ -104,22 +104,67 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 공개 API
-                        .requestMatchers(
-                                "/api/users/signup/**",
-                                "/api/users/login",
-                                "/api/users/find-password",
-                                "/api/auth/**",
-                                "/api/news",
-                                "/images/**"
-                                ,"/api/houses/**", // 수정해볼것
-                                "/api/boards/**" // 이것도
-                        ).permitAll()
-                        // GET 매물은 누구나 조회 가능
-                        .requestMatchers(HttpMethod.GET, "/api/houses/**","/api/boards/**").permitAll()
-                        // POST/PUT/DELETE는 로그인 필요
-                        .requestMatchers(HttpMethod.GET, "/api/houses/**","/api/boards/**", "/api/boards/my").authenticated()
-                        .anyRequest().authenticated()
+                                // 공개 API
+                                .requestMatchers(
+                                        "/api/users/signup/**",
+                                        "/api/users/login",
+                                        "/api/users/find-password",
+                                        "/api/auth/**",
+                                        "/api/news",
+                                        "/images/**",
+                                        "/api/houses/**", // 공개 조회
+                                        "/api/boards/**"  // 공개 조회
+                                ).permitAll()
+
+                                // 인증 필요 GET 요청
+                                .requestMatchers(HttpMethod.GET,
+                                        "/api/qna/mine",
+                                        "/api/boards/my"
+                                ).authenticated()
+
+                                // 인증 필요 POST/PUT/DELETE 요청
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/qna/**",
+                                        "/api/boards/**",
+                                        "/api/houses/**"
+                                ).authenticated()
+                                .requestMatchers(HttpMethod.PUT,
+                                        "/api/qna/**",
+                                        "/api/boards/**",
+                                        "/api/houses/**"
+                                ).authenticated()
+                                .requestMatchers(HttpMethod.DELETE,
+                                        "/api/qna/**",
+                                        "/api/boards/**",
+                                        "/api/houses/**"
+                                ).authenticated()
+
+                                // 그 외 요청은 인증 필요
+                                .anyRequest().authenticated()
+//                        // 공개 API
+//                        .requestMatchers(
+//                                "/api/users/signup/**",
+//                                "/api/users/login",
+//                                "/api/users/find-password",
+//                                "/api/auth/**",
+//                                "/api/news",
+//                                "/images/**"
+//                                ,"/api/houses/**", // 수정해볼것
+//                                "/api/boards/**" // 이것도
+//                        ).permitAll()
+//                        // GET 매물은 누구나 조회 가능
+//                        .requestMatchers(HttpMethod.GET,
+//                                "/api/houses/**",
+//                                "/api/boards/**"
+//                        ).permitAll()
+//                        // POST/PUT/DELETE는 로그인 필요
+//                        .requestMatchers(HttpMethod.GET,
+//                                "/api/houses/**",
+//                                "/api/boards/**",
+//                                "/api/boards/my",
+//                                "/api/qna/mine"
+//                        ).authenticated()
+//                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

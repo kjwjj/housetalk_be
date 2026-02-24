@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -231,5 +233,28 @@ public ResponseEntity<Map<String, String>> changePassword(
     result.put("message", "비밀번호 변경 완료");
     result.put("token", newToken); // 새 토큰 반환
     return ResponseEntity.ok(result);
-}
+    }
+
+    // 총 회원 수 API
+    @GetMapping("/count")
+    public ResponseEntity<Long> getUserCount() {
+        Long totalUsers = userService.getTotalUsers();
+        return ResponseEntity.ok(totalUsers);
+    }
+
+    // 모든 회원 조회
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.getAllUsers(); // 서비스에서 가져오기
+        // 비밀번호는 제거
+        users.forEach(user -> user.setPassword(null));
+        return ResponseEntity.ok(users);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")  // 관리자만 접근 가능
+    public ResponseEntity<?> deleteUserByAdmin(@PathVariable Long id) {
+        userService.deleteUserById(id); // userService에서 id로 삭제하는 메서드 필요
+        return ResponseEntity.ok("회원 삭제 완료");
+    }
 }

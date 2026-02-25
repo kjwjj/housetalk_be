@@ -24,7 +24,7 @@ public class NoticeController {
 
     @GetMapping
     public Page<Notice> getAllNotices(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "10") int size) {
+                                      @RequestParam(defaultValue = "3") int size) {
         return noticeService.getAllNotices(PageRequest.of(page, size));
     }
 

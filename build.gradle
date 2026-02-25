@@ -58,6 +58,12 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Open Ai
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // HTML 테그 제거
+    implementation 'org.apache.commons:commons-text:1.10.0'
 }
 
 tasks.named('test') {

@@ -3,7 +3,8 @@ package com.example.housetalk_be.house.entity;
 import com.example.housetalk_be.user.domain.User;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
+import com.example.housetalk_be.listings.entity.Listing;
+import java.util.List;
 @Entity
 @Table(name = "house")
 public class House {
@@ -18,11 +19,21 @@ public class House {
     @Column(nullable = false)
     private String address;
 
-    private Integer price;
     private String type;
     private Integer rooms;
     private String imagePath;
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "house", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Listing> listings;
+
+    public List<Listing> getListings() {
+        return listings;
+    }
+
+    public void setListings(List<Listing> listings) {
+        this.listings = listings;
+    }
 
     // 🔑 작성자
     @ManyToOne
@@ -38,9 +49,6 @@ public class House {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
-
-    public Integer getPrice() { return price; }
-    public void setPrice(Integer price) { this.price = price; }
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }

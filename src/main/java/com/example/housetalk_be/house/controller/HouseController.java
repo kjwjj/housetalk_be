@@ -39,7 +39,6 @@ public class HouseController {
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam String name,
             @RequestParam String address,
-            @RequestParam(required = false) Integer price,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer rooms,
             @RequestParam(required = false) MultipartFile[] images
@@ -51,7 +50,6 @@ public class HouseController {
         House house = new House();
         house.setName(name);
         house.setAddress(address);
-        house.setPrice(price != null ? price : 0);
         house.setType(type);
         house.setRooms(rooms != null ? rooms : 0);
         house.setUser(user);

@@ -3,6 +3,9 @@ package com.example.housetalk_be.qna.service;
 import com.example.housetalk_be.qna.dto.QnaResponseDTO;
 import com.example.housetalk_be.qna.entity.Qna;
 import com.example.housetalk_be.qna.repository.QnaRepository;
+import com.example.housetalk_be.user.repository.UserRepository;
+import com.example.housetalk_be.user.domain.Role;
+import com.example.housetalk_be.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.mail.SimpleMailMessage;
@@ -21,7 +24,7 @@ public class QnaService {
     private final QnaRepository qnaRepository;
     private final JavaMailSender mailSender;
     private final OpenAiService openAiService;
-
+    private final UserRepository userRepository; //관리자 조회
     @Transactional
     public Qna submitQna(String userEmail, String title, String category, String content) {
         Qna qna = Qna.builder()
@@ -35,6 +38,19 @@ public class QnaService {
         // 이메일 발송
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo("rhwjddn36@gmail.com");
+
+//        message.setFrom("HouseTalk");
+//        // 🔥 ROLE_ADMIN 조회
+//        List<User> admins = userRepository.findAllByRole(Role.ROLE_ADMIN);
+//        if (admins.isEmpty()) {
+//            throw new RuntimeException("관리자 계정이 존재하지 않습니다.");
+//        }
+//        // 관리자 이메일 배열 생성
+//        String[] adminEmails = admins.stream()
+//                .map(User::getEmail)
+//                .toArray(String[]::new);
+//        message.setTo(adminEmails);
+
         message.setSubject("[문의] " + title + " (" + category + ")");
         message.setText("문의자: " + userEmail + "\n\n내용:\n" + content);
         mailSender.send(message);

@@ -113,7 +113,8 @@ public class SecurityConfig {
                                         "/api/news",
                                         "/images/**",
                                         "/api/houses/**", // 공개 조회
-                                        "/api/boards/**"  // 공개 조회
+                                        "/api/boards/**",
+                                        "/api/notices/**" // 공개 조회
                                 ).permitAll()
 
                                 // 인증 필요 GET 요청

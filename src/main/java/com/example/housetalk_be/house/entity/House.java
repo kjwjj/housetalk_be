@@ -22,6 +22,13 @@ public class House {
     private String type;
     private Integer rooms;
     private String imagePath;
+
+    @Column(columnDefinition = "TEXT")  // 🔥 긴 글 저장 가능
+    private String context;
+
+    @Column(nullable = false)
+    private int viewCount = 0;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "house", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -34,6 +41,7 @@ public class House {
     public void setListings(List<Listing> listings) {
         this.listings = listings;
     }
+
 
     // 🔑 작성자
     @ManyToOne
@@ -59,9 +67,16 @@ public class House {
     public String getImagePath() { return imagePath; }
     public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 
+    public String getContext() { return context; }
+    public void setContext(String context) { this.context = context; }
+
+    public int getViewCount() {return viewCount;}
+    public void setViewCount(int viewCount) {this.viewCount = viewCount;}
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
 }

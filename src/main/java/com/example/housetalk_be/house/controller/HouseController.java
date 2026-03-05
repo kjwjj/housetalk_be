@@ -2,6 +2,7 @@ package com.example.housetalk_be.house.controller;
 
 import com.example.housetalk_be.house.dto.HouseResponseDto;
 import com.example.housetalk_be.house.entity.House;
+import com.example.housetalk_be.house.entity.HouseLike;
 import com.example.housetalk_be.house.service.HouseService;
 import com.example.housetalk_be.user.domain.User;
 import com.example.housetalk_be.user.service.CustomUserDetailsService;
@@ -34,6 +35,9 @@ public class HouseController {
         this.userDetailsService = userDetailsService;
     }
 
+    // =========================
+    // 매물 등록
+    // =========================
     @PostMapping
     public ResponseEntity<HouseResponseDto> addHouse(
             @AuthenticationPrincipal UserDetails principal,
@@ -41,6 +45,7 @@ public class HouseController {
             @RequestParam String address,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer rooms,
+            @RequestParam(required = false) String context,   // ✅ 추가
             @RequestParam(required = false) MultipartFile[] images
     ) throws IOException {
 
@@ -53,6 +58,7 @@ public class HouseController {
         house.setType(type);
         house.setRooms(rooms != null ? rooms : 0);
         house.setUser(user);
+        house.setContext(context);
 
         if (images != null && images.length > 0) {
             StringBuilder sb = new StringBuilder();
@@ -69,15 +75,19 @@ public class HouseController {
         }
 
         House saved = houseService.save(house);
-        return ResponseEntity.ok(HouseResponseDto.from(saved));
+        return ResponseEntity.ok(HouseResponseDto.from(saved,0,false));
     }
 
+    // =========================
+    // 수정
+    // =========================
     @PutMapping("/{id}")
     public ResponseEntity<HouseResponseDto> updateHouse(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam String name,
-            @RequestParam String address
+            @RequestParam String address,
+            @RequestParam(required = false) String context   // ✅ 추가
     ) {
         House house = houseService.findById(id)
                 .orElseThrow(() -> new RuntimeException("매물이 존재하지 않습니다."));
@@ -88,27 +98,22 @@ public class HouseController {
 
         house.setName(name);
         house.setAddress(address);
+        house.setContext(context);
 
         House updated = houseService.save(house);
-        return ResponseEntity.ok(HouseResponseDto.from(updated));
+
+        int likeCount = houseService.getLikeCount(updated.getId());
+        boolean likedByMe = houseService.isLikedByUser(
+                updated.getId(),
+                house.getUser().getId()
+        );
+
+        return ResponseEntity.ok(HouseResponseDto.from(updated, likeCount, likedByMe));
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteHouse(
-//            @PathVariable Long id,
-//            @AuthenticationPrincipal UserDetails principal
-//    ) {
-//        House house = houseService.findById(id)
-//                .orElseThrow(() -> new RuntimeException("매물이 존재하지 않습니다."));
-//
-//        if (!house.getUser().getEmail().equals(principal.getUsername())) {
-//            return ResponseEntity.status(403).build();
-//        }
-//
-//        houseService.delete(house);
-//        return ResponseEntity.noContent().build();
-//    }
-
+    // =========================
+    // 삭제
+    // =========================
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHouse(
             @PathVariable Long id,
@@ -132,12 +137,148 @@ public class HouseController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public ResponseEntity<List<HouseResponseDto>> getHouses() {
-        List<House> houses = houseService.findAll();
+    // =========================
+    // 조회수 증가
+    // =========================
+    @PatchMapping("/{id}/view")
+    public ResponseEntity<?> increaseView(@PathVariable Long id) {
+        houseService.increaseView(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // =========================
+    // 인기 매물
+    // =========================
+    @GetMapping("/popular")
+    public ResponseEntity<List<HouseResponseDto>> getPopularHouses(
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+
+        User loginUser = (principal != null)
+                ? userDetailsService.findByEmail(principal.getUsername()).orElse(null)
+                : null;
+
+        List<House> houses = houseService.findPopularHouses();
+
         List<HouseResponseDto> dtos = houses.stream()
-                .map(HouseResponseDto::from)
+                .map(house -> {
+
+                    int likeCount = houseService.getLikeCount(house.getId());
+
+                    boolean likedByMe = false;
+                    if (loginUser != null) {
+                        likedByMe = houseService
+                                .isLikedByUser(house.getId(), loginUser.getId());
+                    }
+
+                    return HouseResponseDto.from(house, likeCount, likedByMe);
+                })
                 .toList();
+
+        return ResponseEntity.ok(dtos);
+    }
+
+
+    // =========================
+    // 좋아요 토글
+    // =========================
+    @PostMapping("/{id}/like")
+    public ResponseEntity<?> toggleLike(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+        User user = userDetailsService.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("로그인 사용자 없음"));
+
+        houseService.toggleLike(id, user);
+        return ResponseEntity.ok().build();
+    }
+
+    // =========================
+    // 전체 목록
+    // =========================
+    @GetMapping
+    public ResponseEntity<List<HouseResponseDto>> getHouses(
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+
+        User loginUser = (principal != null)
+                ? userDetailsService.findByEmail(principal.getUsername()).orElse(null)
+                : null;
+
+        List<House> houses = houseService.findAll();
+
+        List<HouseResponseDto> dtos = houses.stream()
+                .map(house -> {
+
+                    int likeCount = houseService.getLikeCount(house.getId());
+
+                    boolean likedByMe = false;
+                    if (loginUser != null) {
+                        likedByMe = houseService
+                                .isLikedByUser(house.getId(), loginUser.getId());
+                    }
+
+                    return HouseResponseDto.from(house, likeCount, likedByMe);
+                })
+                .toList();
+
+        return ResponseEntity.ok(dtos);
+    }
+
+    // =========================
+    // 내 매물 목록
+    // =========================
+    @GetMapping("/my")
+    public ResponseEntity<List<HouseResponseDto>> getMyHouses(
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+
+        User loginUser = userDetailsService.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("로그인 사용자 없음"));
+
+        List<House> houses =
+                houseService.findByUserEmail(principal.getUsername());
+
+        List<HouseResponseDto> dtos = houses.stream()
+                .map(house -> {
+
+                    int likeCount = houseService.getLikeCount(house.getId());
+
+                    boolean likedByMe =
+                            houseService.isLikedByUser(house.getId(), loginUser.getId());
+
+                    return HouseResponseDto.from(house, likeCount, likedByMe);
+                })
+                .toList();
+
+        return ResponseEntity.ok(dtos);
+    }
+
+
+    // =========================
+// 🔥 내가 찜한 매물 목록
+// =========================
+    @GetMapping("/liked")
+    public ResponseEntity<List<HouseResponseDto>> getLikedHouses(
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+
+        User loginUser = userDetailsService.findByEmail(principal.getUsername())
+                .orElseThrow(() -> new RuntimeException("로그인 사용자 없음"));
+
+        // houseService에서 찜한 매물 가져오기
+        List<HouseLike> likedList = houseService.findLikedByUser(loginUser.getId());
+
+        List<HouseResponseDto> dtos = likedList.stream()
+                .map(like -> {
+                    House house = like.getHouse();
+                    int likeCount = houseService.getLikeCount(house.getId());
+                    boolean likedByMe = true; // 찜한 거니까 항상 true
+                    return HouseResponseDto.from(house, likeCount, likedByMe);
+                })
+                .toList();
+
         return ResponseEntity.ok(dtos);
     }
 

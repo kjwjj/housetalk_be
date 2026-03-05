@@ -11,11 +11,18 @@ public record HouseResponseDto(
         String type,
         Integer rooms,
         String imagePath,
+        String context,
+        int viewCount,
+        int likeCount,      // ✅ 추가
+        boolean likedByMe,
         Long userId,
         String userName,
         ListingResponseDto listing   // ✅ 추가
 ) {
-    public static HouseResponseDto from(House house) {
+    public static HouseResponseDto from(
+            House house,
+            int likeCount,
+            boolean likedByMe) {
         ListingResponseDto listingDto = null;
 
         if (house.getListings() != null && !house.getListings().isEmpty()) {
@@ -30,6 +37,10 @@ public record HouseResponseDto(
                 house.getType(),
                 house.getRooms(),
                 house.getImagePath(),
+                house.getContext(),
+                house.getViewCount(),
+                likeCount,
+                likedByMe,
                 house.getUser() != null ? house.getUser().getId() : null,
                 house.getUser() != null ? house.getUser().getName() : null,
                 listingDto   // ✅ 여기
